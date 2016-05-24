@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Date;
 import java.util.Properties;
+
+import com.jfoenix.controls.JFXDatePicker;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -20,11 +23,16 @@ public class GoHome {
     Thread t;
     @FXML
     Label timeLabel;
+    @FXML
+    JFXDatePicker datePicker;
+
     boolean running = false;
+    private String finishTimeTime;
 
     public GoHome() {
         load();
     }
+
     private void load() {
         try {
             prop = readProperty();
@@ -38,7 +46,7 @@ public class GoHome {
     public void printOutMinutesLeft() throws ParseException {
         final Date actualDate = new Date();
         final String actualTime = dateTimeFormat.format(actualDate.getTime());
-        final String finishTime = actualTime.split("\\s")[0] + " " + prop.getProperty("time-to-leave");
+        final String finishTime = actualTime.split("\\s")[0] + " " + finishTimeTime;
         final Date finishDate = dateTimeFormat.parse(finishTime);
         final int timeZoneCorrection = 1000 * 60 * 60;
         final long difference = finishDate.getTime() - actualDate.getTime() - timeZoneCorrection;
@@ -82,7 +90,18 @@ public class GoHome {
     public void startTimer() {
 
         running = true;
+        if(finishTimeTime == null){
+            finishTimeTime = "17:00";
+        }
         printOutMinutesLeftAsync();
+    }
+
+    @FXML
+    public void updateEndDate() {
+        final LocalTime time = datePicker.getTime();
+        finishTimeTime = time.getHour() + ":" + time.getMinute();
+        System.out.println(finishTimeTime);
+
     }
 
     public void stop() {
