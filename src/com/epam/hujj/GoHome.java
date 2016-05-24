@@ -30,7 +30,7 @@ public class GoHome {
         final Date actualDate = new Date();
 
         final String actualTime = dateTimeFormat.format(actualDate.getTime());
-        final String finishTime = actualTime.split("\\s")[0] + " 17:00";
+        final String finishTime = actualTime.split("\\s")[0] + " " + prop.getProperty("time-to-leave");
 
         final Date finishDate = dateTimeFormat.parse(finishTime);
         final int timeZoneCorrection = 1000 * 60 * 60;
@@ -44,20 +44,24 @@ public class GoHome {
             while (true) {
                 try {
                     Thread.sleep(1000);
-                    final String operatingSystem = System.getProperty("os.name");
-
-                    if (operatingSystem.contains("Windows")) {
-                        final String[] cls = new String[] { "cmd.exe", "/c", "cls" };
-                        Runtime.getRuntime().exec(cls);
-                    } else {
-                        Runtime.getRuntime().exec("clear");
-                    }
+                    clearConsole();
                     printOutMinutesLeft();
                 } catch (ParseException | InterruptedException | IOException e) {
                     e.printStackTrace();
                 }
             }
         }).start();
+    }
+
+    private void clearConsole() throws IOException {
+        final String operatingSystem = System.getProperty("os.name");
+
+        if (operatingSystem.contains("Windows")) {
+            final String[] cls = new String[] { "cmd.exe", "/c", "cls" };
+            Runtime.getRuntime().exec(cls);
+        } else {
+            Runtime.getRuntime().exec("clear");
+        }
     }
 
     private Properties readProperty() throws IOException {
