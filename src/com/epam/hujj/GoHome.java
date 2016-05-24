@@ -33,7 +33,8 @@ public class GoHome {
         final String finishTime = actualTime.split("\\s")[0] + " 17:00";
 
         final Date finishDate = dateTimeFormat.parse(finishTime);
-        final long difference = finishDate.getTime() - actualDate.getTime();
+        final int timeZoneCorrection = 1000 * 60 * 60;
+        final long difference = finishDate.getTime() - actualDate.getTime() - timeZoneCorrection;
         System.out.println("Time left:" + timeFormat.format(difference));
 
     }
@@ -43,8 +44,16 @@ public class GoHome {
             while (true) {
                 try {
                     Thread.sleep(1000);
+                    final String operatingSystem = System.getProperty("os.name");
+
+                    if (operatingSystem.contains("Windows")) {
+                        final String[] cls = new String[] { "cmd.exe", "/c", "cls" };
+                        Runtime.getRuntime().exec(cls);
+                    } else {
+                        Runtime.getRuntime().exec("clear");
+                    }
                     printOutMinutesLeft();
-                } catch (ParseException | InterruptedException e) {
+                } catch (ParseException | InterruptedException | IOException e) {
                     e.printStackTrace();
                 }
             }
