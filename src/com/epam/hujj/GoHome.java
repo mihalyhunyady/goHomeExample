@@ -8,13 +8,24 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Properties;
 
+import javafx.application.Platform;
+import javafx.fxml.FXML;
+import javafx.scene.control.Label;
+
 public class GoHome {
 
     Properties prop;
-    final SimpleDateFormat timeFormat;
-    final SimpleDateFormat dateTimeFormat;
+    SimpleDateFormat timeFormat;
+    SimpleDateFormat dateTimeFormat;
+    Thread t;
+    @FXML
+    Label timeLabel;
+    boolean running = false;
 
     public GoHome() {
+        load();
+    }
+    private void load() {
         try {
             prop = readProperty();
         } catch (final IOException exception) {
@@ -25,43 +36,29 @@ public class GoHome {
     }
 
     public void printOutMinutesLeft() throws ParseException {
-        // final MessageFormat msgFormat = new MessageFormat(pattern);
-
         final Date actualDate = new Date();
-
         final String actualTime = dateTimeFormat.format(actualDate.getTime());
         final String finishTime = actualTime.split("\\s")[0] + " " + prop.getProperty("time-to-leave");
-
         final Date finishDate = dateTimeFormat.parse(finishTime);
         final int timeZoneCorrection = 1000 * 60 * 60;
         final long difference = finishDate.getTime() - actualDate.getTime() - timeZoneCorrection;
-        System.out.println("Time left:" + timeFormat.format(difference));
-
+        Platform.runLater(() -> {
+            timeLabel.setText("Time left: " + timeFormat.format(difference));
+        });
     }
 
     public void printOutMinutesLeftAsync() {
-        new Thread(() -> {
-            while (true) {
+        t = new Thread(() -> {
+            while (running) {
                 try {
                     Thread.sleep(1000);
-                    clearConsole();
                     printOutMinutesLeft();
-                } catch (ParseException | InterruptedException | IOException e) {
+                } catch (ParseException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-        }).start();
-    }
-
-    private void clearConsole() throws IOException {
-        final String operatingSystem = System.getProperty("os.name");
-
-        if (operatingSystem.contains("Windows")) {
-            final String[] cls = new String[] { "cmd.exe", "/c", "cls" };
-            Runtime.getRuntime().exec(cls);
-        } else {
-            Runtime.getRuntime().exec("clear");
-        }
+        });
+        t.start();
     }
 
     private Properties readProperty() throws IOException {
@@ -74,5 +71,24 @@ public class GoHome {
             throw new FileNotFoundException("property file '" + propFileName + "' not found in the classpath");
         }
         return prop;
+    }
+
+    @FXML
+    public void stopTimer() {
+        running = false;
+    }
+
+    @FXML
+    public void startTimer() {
+
+        running = true;
+        printOutMinutesLeftAsync();
+    }
+
+    public void stop() {
+        stopTimer();
+        if (t != null) {
+            t.interrupt();
+        }
     }
 }
